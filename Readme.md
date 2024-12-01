@@ -79,18 +79,30 @@ docker-compose -f docker-compose-ueransim-vpp.yaml up -d
 ```
 ping <target_ip>
 ```
+<div align="center">
+    <img src="ping.png" alt="Ping Icon">&nbsp;&nbsp;&nbsp;
+</div>
+
 2. **Service Request Test**: Validate UE session initiation.
+
 3. **iPerf Test**: Measure network bandwidth.
 
 iPerf Server:
 ```
 iperf3 -s
 ```
+<div align="center">
+    <img src="server.png" alt="client Icon">&nbsp;&nbsp;&nbsp;
+</div>
 
 iPerf Client:
 ```
 iperf3 -c <server_ip>
 ```
+<div align="center">
+    <img src="client.png" alt="Ping Icon">&nbsp;&nbsp;&nbsp;
+</div>
+
 ## NWDAF Features
 **Data Collection**: Gathers network data from AMF, SMF, etc.
 

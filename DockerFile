@@ -1,0 +1,42 @@
+# Use Ubuntu 18.04 as the base image
+FROM ubuntu:18.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    docker.io \
+    docker-compose \
+    tshark \
+    iputils-ping \
+    python3 \
+    python3-pip \
+    iproute2 \
+    net-tools \
+    vim \
+    curl \
+    software-properties-common && \
+    add-apt-repository ppa:wireshark-dev/stable && \
+    apt-get update && apt-get install -y wireshark
+
+# Install any additional Python dependencies
+RUN pip3 install docker-compose
+
+# Set up forwarding and permissions
+RUN echo "net.ipv4.conf.all.forwarding=1" >> /etc/sysctl.conf && \
+    echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections && \
+    chmod +x /usr/bin/tshark && \
+    sysctl -p
+
+# Copy configuration files (to be created separately)
+COPY configs /etc/oai-configs
+
+# Set up working directory
+WORKDIR /oai
+
+# Add the script to deploy the network
+COPY core-network.py /oai/core-network.py
+RUN chmod +x /oai/core-network.py
+
+CMD ["/bin/bash"]

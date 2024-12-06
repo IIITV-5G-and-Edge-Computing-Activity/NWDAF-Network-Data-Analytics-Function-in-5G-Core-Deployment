@@ -39,6 +39,65 @@ The project uses the following components:
 - **NWDAF**: Analyzes network data to optimize performance.
 
 ---
+## Deployment Prerequisite
+Before starting, ensure you have the following installed and configured:
+
+### Operating System:
+
+**Preffered**: Ubuntu 20.04+ (or compatible Linux distribution).
+
+Alternatively, use a virtualized environment like VirtualBox or WSL (Windows Subsystem for Linux).
+
+**Docker and Docker Compose**:
+
+Install Docker and Docker Compose for container-based setups.
+```
+sudo apt update
+sudo apt install docker.io docker-compose
+```
+
+**Tools Installation**:
+
+Git, Build-essential tools & iPerf3 for bandwidth testing 
+```
+sudo apt install git
+sudo apt install build-essential
+sudo apt install iperf3
+```
+
+**WireShark installation**
+```
+sudo add-apt-repository ppa:wireshark-dev/stable
+sudo apt update
+sudo apt install wireshark
+wireshark --version
+```
+
+**Additional Packages**:
+
+Python 3.x and pip 
+```
+sudo apt install python3 python3-pip
+```
+Make utility 
+```
+sudo apt install make
+```
+
+### Enable packet Forwarding (Important)
+Enable packet forwarding on the docker-compose-host machine:
+```
+sudo sysctl net.ipv4.conf.all.forwarding=1
+sudo iptables -P FORWARD ACCEPT
+```
+
+**Hardware Requirements**:
+
+At least 8 GB RAM and a quad-core processor.
+
+50 GB free disk space.
+
+Ensure these prerequisites are met to proceed with the deployment.
 
 ## Deployment
 
@@ -61,11 +120,57 @@ sudo systemctl start open5gs-smf
 ./build/nr-gnb -c config/gnb.conf
 ./build/nr-ue -c config/ue.conf
 ```
+### 5G Core Deployment
+**Clone Images**:
+```
+git clone https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed.git
+cd oai-cn5g-fed
+docker-compose -f
+```
+**Bridge Creation**:
+```
+networks:
+  public_net:
+      driver: bridge
+      name: demo-oai-public-net
+      ipam:
+          config:
+              - subnet: 192.168.70.128/26
+      driver_opts:
+          com.docker.network.bridge.name: "demo-oai"
+```
+**Set up routing on the gNB-host machine to reach the docker-compose-host**:
+```
+sudo ip route add 192.168.70.128/26 via <IP_ADDR_NIC1> dev <NIC1_NAME>
+```
+
+**Verify connectivity**:
+```
+ping 192.168.70.129
+```
+**Deploying OAI 5G Core Network**
+
+Use the provided Python script to simplify deployment. Example commands:
+```
+python3 core-network.py --type start-basic
+python3 core-network.py --type start-basic-vpp
+python3 core-network.py --type start-mini --scenario 2
+python3 core-network.py --type stop-mini --scenario 2
+```
+For packet capture, use the --capture option:
+```
+python3 core-network.py --type start-basic --capture output.pcap
+```
+
+
 
 ###  OAI Docker Setup
+
 Clone and Build Images:
 ```
+git clone https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed.git
 cd oai-cn5g-fed
+cd docker-compose
 docker-compose -f docker-compose-basic-vpp-nrf.yaml up -d
 ```
 Deploy NWDAF:
